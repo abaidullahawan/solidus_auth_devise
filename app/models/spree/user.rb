@@ -6,8 +6,8 @@ module Spree
     has_one_attached :profile
 
     devise :database_authenticatable, :registerable, :recoverable,
-           :rememberable, :trackable, :validatable, :encryptable
-    devise :confirmable if Spree::Auth::Config[:confirmable]
+           :rememberable, :trackable, :validatable, :encryptable, :confirmable
+    # devise :confirmable if Spree::Auth::Config[:confirmable]
 
     if defined?(Spree::SoftDeletable)
       include Spree::SoftDeletable
