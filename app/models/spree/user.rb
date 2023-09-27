@@ -3,11 +3,27 @@
 module Spree
   class User < Spree::Base
     include UserMethods
+    attr_accessor :login
     has_one_attached :profile
 
     devise :database_authenticatable, :registerable, :recoverable,
            :rememberable, :trackable, :validatable, :encryptable, :confirmable
-    # devise :confirmable if Spree::Auth::Config[:confirmable]
+    devise :confirmable if Spree::Auth::Config[:confirmable]
+
+    validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }
+    validates :phone_number, presence: false, allow_nil: true, uniqueness: true
+    validate :email_or_phone_number_present
+
+    def email_required?
+      false
+    end
+
+    def email_or_phone_number_present
+      return if email.present? || phone_number.present?
+
+      errors.add(:email, 'Email or Phone Number must be exist.')
+      errors.add(:phone_number, 'Email or Phone Number must be exist.')
+    end
 
     if defined?(Spree::SoftDeletable)
       include Spree::SoftDeletable
@@ -27,7 +43,7 @@ module Spree
       super
     end
 
-    before_validation :set_login
+    # before_validation :set_login
 
     scope :admin, -> { includes(:spree_roles).where("#{Role.table_name}.name" => "admin") }
 
@@ -51,16 +67,25 @@ module Spree
 
     private
 
+
+    def self.find_for_database_authentication(conditions = {})
+      login_param = conditions[:login].downcase
+      find_by('lower(email) = ? OR phone_number = ?', login_param, login_param)
+    end
+
+    def login=(login)
+      @login = self.email || self.phone_number
+    end
+  
     def set_login
-      # for now force login to be same as email, eventually we will make this configurable, etc.
-      self.login ||= email if email
+      @login || self.phone_number || self.email
     end
 
     def scramble_email_and_password
       return true if destroyed?
 
       self.email = SecureRandom.uuid + "@example.net"
-      self.login = email
+      self.login = email || phone_number
       self.password = SecureRandom.hex(8)
       self.password_confirmation = password
       save
