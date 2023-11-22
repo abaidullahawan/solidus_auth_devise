@@ -7,7 +7,7 @@ module Spree
     has_one_attached :profile
 
     devise :database_authenticatable, :registerable, :recoverable,
-           :rememberable, :trackable, :validatable, :encryptable, :confirmable
+           :rememberable, :trackable, :validatable, :encryptable, :confirmable, :timeoutable, :lockable
     devise :confirmable if Spree::Auth::Config[:confirmable]
 
     validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }
