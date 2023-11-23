@@ -66,7 +66,7 @@ Devise.setup do |config|
   # config.remember_across_browsers = true
 
   # If true, extends the user's remember period when remembered via cookie.
-  # config.extend_remember_period = false
+  config.extend_remember_period = true
 
   # ==> Configuration for :validatable
   # Range for password length
@@ -75,7 +75,7 @@ Devise.setup do |config|
   # ==> Configuration for :timeoutable
   # The time you want to timeout the user session without activity. After this
   # time the user will be asked for credentials again.
-  config.timeout_in = 1.hours
+  config.timeout_in = 30.minutes
 
   # ==> Configuration for :lockable
   # Defines which strategy will be used to lock an account.
