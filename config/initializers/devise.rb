@@ -49,6 +49,10 @@ Devise.setup do |config|
     Rails.configuration.secret_key_base
   end
 
+  config.warden do |manager|
+    manager.default_strategies(:scope => :user).unshift :password_expirable, :timeoutable, :lockable
+  end
+
   # ==> Configuration for :confirmable
   # The time you want to give your user to confirm his account. During this time
   # he will be able to access your application without confirming. Default is nil.
