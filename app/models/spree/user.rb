@@ -18,6 +18,10 @@ module Spree
       false
     end
 
+    def exceeded_login_attempts?
+      failed_attempts >= 5 && last_login_attempt_at.to_i >= 1.hour.ago.to_i
+    end
+
     def email_or_phone_number_present
       return if email.present? || phone_number.present?
 
