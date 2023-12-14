@@ -13,6 +13,8 @@ module Spree
     validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }
     validates :phone_number, presence: false, allow_nil: true, uniqueness: true
     validate :email_or_phone_number_present
+    validates :password, length: { minimum: 8 }
+    validate :password_complexity
 
     def email_required?
       false
@@ -71,6 +73,13 @@ module Spree
 
     private
 
+    def password_complexity
+      return if password.blank?
+
+      unless password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#\$%\^&\*])/)
+        errors.add :password, 'must include at least one lowercase letter, one uppercase letter, one digit, and one special character'
+      end
+    end
 
     def self.find_for_database_authentication(conditions = {})
       login_param = conditions[:login].downcase
