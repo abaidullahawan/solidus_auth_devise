@@ -13,8 +13,8 @@ module Spree
     validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }
     validates :phone_number, presence: false, allow_nil: true, uniqueness: true
     validate :email_or_phone_number_present
-    validates :password, length: { minimum: 8 }
-    validate :password_complexity
+    validates :password, length: { minimum: 8 }, on: :create
+    validate :password_complexity, on: :create
 
     def email_required?
       false

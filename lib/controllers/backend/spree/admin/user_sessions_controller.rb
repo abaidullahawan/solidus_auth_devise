@@ -11,22 +11,29 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   layout 'spree/layouts/admin'
 
   def create
-    authenticate_spree_user!
-
-    if spree_user_signed_in?
+    if valid_credentials?
+      # User provided valid credentials
+      authenticate_spree_user!
+      sign_in(@spree_user)
       respond_to do |format|
-        format.html {
+        format.html do
           flash[:success] = I18n.t('spree.logged_in_succesfully')
           redirect_back_or_default(after_sign_in_path_for(spree_current_user))
-        }
-        format.js {
-          user = resource.record
-          render json: { ship_address: user.ship_address, bill_address: user.bill_address }.to_json
-        }
+        end
+        format.js { render success_json }
       end
     else
-      flash.now[:error] = t('devise.failure.invalid')
-      render :new
+      # User provided invalid credentials
+      respond_to do |format|
+        format.html do
+          flash.now[:error] = @flash_error
+          render :new
+        end
+        format.js do
+          render json: { error: @flash_error },
+                  status: :unprocessable_entity
+        end
+      end
     end
   end
 
@@ -55,5 +62,16 @@ class Spree::Admin::UserSessionsController < Devise::SessionsController
   def redirect_back_or_default(default)
     redirect_to(session["spree_user_return_to"] || default)
     session["spree_user_return_to"] = nil
+  end
+
+  def valid_credentials?
+    @spree_user = Spree::User.find_by(email: params[:spree_user][:email])
+    valid_password = @spree_user&.valid_password?(params[:spree_user][:password])
+    if !@spree_user.present?
+      @flash_error = 'Email not exist in database.'
+    elsif !valid_password
+      @flash_error = 'Invalid Password'
+    end
+    valid_password
   end
 end
