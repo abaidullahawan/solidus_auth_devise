@@ -9,8 +9,8 @@ module Spree
     devise :database_authenticatable, :registerable, :recoverable,
            :rememberable, :trackable, :validatable, :encryptable, :confirmable, :timeoutable, :lockable
     devise :confirmable if Spree::Auth::Config[:confirmable]
-
-    validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }
+    EMAIL_REGEX = /\A[A-Za-z0-9._%]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\z/
+    validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }, format: { with: EMAIL_REGEX }
     validates :phone_number, presence: false, allow_nil: true, uniqueness: true
     validate :email_or_phone_number_present
     validates :password, length: { minimum: 8 }, on: :create
