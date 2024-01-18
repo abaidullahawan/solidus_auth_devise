@@ -147,4 +147,7 @@ Devise.setup do |config|
   config.reset_password_within = 6.hours
 
   config.case_insensitive_keys = [:email, :phone_number]
+
+  config.omniauth :google_oauth2, '943829491687-nni43nbn1h4sibuco93ocqepkjvm02ag.apps.googleusercontent.com', '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'
+  config.omniauth :facebook, '1032148157889454', 'a426c40e620c0228f24bfdfaa9ceaea0'
 end

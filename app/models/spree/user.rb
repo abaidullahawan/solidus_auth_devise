@@ -7,7 +7,8 @@ module Spree
     has_one_attached :profile
 
     devise :database_authenticatable, :registerable, :recoverable,
-           :rememberable, :trackable, :validatable, :encryptable, :confirmable, :timeoutable, :lockable
+           :rememberable, :trackable, :validatable, :encryptable, :confirmable, :timeoutable, :lockable,
+           :omniauthable, omniauth_providers: [:google_oauth2, :facebook]
     devise :confirmable if Spree::Auth::Config[:confirmable]
     EMAIL_REGEX = /\A[A-Za-z0-9._%]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}\z/
     validates :email, presence: false, allow_nil: true, uniqueness: { case_insensitive: false }, if: -> { email.present? }, format: { with: EMAIL_REGEX }
@@ -61,8 +62,27 @@ module Spree
       has_spree_role?('admin')
     end
 
+    def guest?
+      has_spree_role?('guest')
+    end
+
     def confirmed?
       !!confirmed_at
+    end
+
+    def self.from_omniauth(auth)
+      existing_user = find_by(email: auth.info.email)
+
+      if existing_user
+        existing_user.update(provider: auth.provider, uid: auth.uid)
+        existing_user
+      else
+        where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
+          user.email = auth.info.email
+          user.password = generate_random_password
+          user.skip_confirmation!
+        end
+      end
     end
 
     protected
@@ -102,6 +122,20 @@ module Spree
       self.password = SecureRandom.hex(8)
       self.password_confirmation = password
       save
+    end
+
+    def generate_random_password
+      lowercase_letter = ('a'..'z').to_a.sample
+      uppercase_letter = ('A'..'Z').to_a.sample
+      digit = ('0'..'9').to_a.sample
+      special_character = ['!', '@', '#', '$', '%', '^', '&', '*'].sample
+
+      all_characters = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ['!', '@', '#', '$', '%', '^', '&', '*']
+      remaining_characters = all_characters - [lowercase_letter, uppercase_letter, digit, special_character]
+      additional_characters = remaining_characters.sample(16)
+
+      password_array = [lowercase_letter, uppercase_letter, digit, special_character] + additional_characters
+      password_array.shuffle.join
     end
   end
 end
