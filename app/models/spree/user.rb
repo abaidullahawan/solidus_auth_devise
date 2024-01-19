@@ -77,6 +77,18 @@ module Spree
         existing_user.update(provider: auth.provider, uid: auth.uid)
         existing_user
       else
+        lowercase_letter = ('a'..'z').to_a.sample
+        uppercase_letter = ('A'..'Z').to_a.sample
+        digit = ('0'..'9').to_a.sample
+        special_character = ['!', '@', '#', '$', '%', '^', '&', '*'].sample
+
+        all_characters = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ['!', '@', '#', '$', '%', '^', '&', '*']
+        remaining_characters = all_characters - [lowercase_letter, uppercase_letter, digit, special_character]
+        additional_characters = remaining_characters.sample(16)
+
+        password_array = [lowercase_letter, uppercase_letter, digit, special_character] + additional_characters
+        generate_random_password = password_array.shuffle.join
+
         where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
           user.email = auth.info.email
           user.password = generate_random_password
@@ -122,20 +134,6 @@ module Spree
       self.password = SecureRandom.hex(8)
       self.password_confirmation = password
       save
-    end
-
-    def generate_random_password
-      lowercase_letter = ('a'..'z').to_a.sample
-      uppercase_letter = ('A'..'Z').to_a.sample
-      digit = ('0'..'9').to_a.sample
-      special_character = ['!', '@', '#', '$', '%', '^', '&', '*'].sample
-
-      all_characters = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a + ['!', '@', '#', '$', '%', '^', '&', '*']
-      remaining_characters = all_characters - [lowercase_letter, uppercase_letter, digit, special_character]
-      additional_characters = remaining_characters.sample(16)
-
-      password_array = [lowercase_letter, uppercase_letter, digit, special_character] + additional_characters
-      password_array.shuffle.join
     end
   end
 end
